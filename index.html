@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NettoGiro</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B0A14">
+<link rel="icon" href="Icon/icon-192.png">
+<link rel="apple-touch-icon" href="Icon/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0A14;
+  --ink:#F4F2FA;
+  --ink-70:rgba(244,242,250,.72);
+  --ink-45:rgba(244,242,250,.46);
+  --line:rgba(255,255,255,.11);
+  --line-soft:rgba(255,255,255,.065);
+
+  --glass:rgba(255,255,255,.055);
+  --glass-2:rgba(255,255,255,.09);
+  --glass-deep:rgba(255,255,255,.03);
+
+  --v:#8B5CF6;   /* violetto  */
+  --c:#FF6B6B;   /* corallo   */
+  --a:#FFB84D;   /* ambra     */
+  --grad:linear-gradient(135deg, var(--v), var(--c) 55%, var(--a));
+
+  --netto:#34D399;   --netto-tint:rgba(52,211,153,.14);   --netto-line:rgba(52,211,153,.35);
+  --imposta:#FBBF6B; --imposta-tint:rgba(251,191,107,.14);--imposta-line:rgba(251,191,107,.35);
+  --cassa:#60A5FA;   --cassa-tint:rgba(96,165,250,.14);   --cassa-line:rgba(96,165,250,.35);
+  --giro:#A5ADBB;    --giro-tint:rgba(165,173,187,.12);
+  --alert:#FF6B6B;   --alert-tint:rgba(255,107,107,.14);  --alert-line:rgba(255,107,107,.35);
+  --ok:#34D399; --warn:#FBBF6B;
+
+  --r-sm:10px; --r-md:14px; --r-lg:20px;
+  --shadow:0 1px 1px rgba(0,0,0,.25), 0 10px 34px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Hanken Grotesk',system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:16px;line-height:1.5;font-feature-settings:"tnum" 1;
+  -webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;margin:0;letter-spacing:-.01em}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 112px;position:relative;z-index:1}
+
+/* ===== aurora — fondale luminoso fisso, dietro tutto ===== */
+.aurora{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 12% 8%,  rgba(139,92,246,.50), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(255,107,107,.42), transparent 46%),
+    radial-gradient(circle at 82% 88%, rgba(255,184,77,.34),  transparent 48%),
+    radial-gradient(circle at 8% 92%,  rgba(56,130,246,.36),  transparent 46%),
+    radial-gradient(circle at 50% 50%, rgba(139,92,246,.10),  transparent 60%);
+  filter:blur(60px) saturate(1.25);
+}
+@media(max-width:640px){.aurora{filter:blur(42px) saturate(1.2)}}
+
+/* ===== header ===== */
+header{position:sticky;top:0;z-index:30;background:rgba(11,10,20,.72);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border-bottom:1px solid var(--line-soft)}
+.headrow{max-width:900px;margin:0 auto;padding:13px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+.sync{
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  background:var(--glass);border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px 5px 9px;font-size:12.5px;color:var(--ink-70);font-family:inherit;
+}
+.sync:hover{background:var(--glass-2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-45);flex:none;box-shadow:0 0 0 3px transparent}
+.sync[data-s="ok"] .dot{background:var(--netto);box-shadow:0 0 0 3px var(--netto-tint)}
+.sync[data-s="ok"]{color:#B7F3D8;border-color:var(--netto-line)}
+.sync[data-s="save"] .dot{background:var(--warn);animation:pulse 1s infinite}
+.sync[data-s="local"] .dot{background:var(--warn)}
+.sync[data-s="err"] .dot{background:var(--alert)}
+.sync[data-s="err"]{color:#FFD2CE;border-color:var(--alert-line)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+.yearnav{display:flex;align-items:center;gap:2px;background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:3px}
+.yearnav.hide{display:none}
+.yearnav button{border:0;background:none;color:var(--ink-70);width:29px;height:29px;border-radius:999px;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+.yearnav button:hover{background:var(--glass-2);color:var(--ink)}
+.yearnav button:disabled{opacity:.3;cursor:default;background:none}
+.yearnav .y{font-family:'Space Grotesk',sans-serif;font-size:16.5px;font-weight:600;min-width:46px;text-align:center;color:var(--ink)}
+
+nav{max-width:900px;margin:0 auto;padding:12px 16px 0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{position:relative;border:0;background:none;color:var(--ink-45);font:inherit;font-size:14.5px;padding:9px 14px 14px;cursor:pointer;white-space:nowrap;transition:color .15s}
+nav button:hover{color:var(--ink-70)}
+nav button[aria-current="page"]{color:var(--ink);font-weight:600}
+nav button[aria-current="page"]::after{content:"";position:absolute;left:14px;right:14px;bottom:6px;height:3px;border-radius:999px;background:var(--grad)}
+
+/* ===== superfici di vetro ===== */
+section.panel{display:none}
+section.panel.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:var(--r-md);padding:19px;margin-top:14px;box-shadow:var(--shadow);backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3)}
+.card>h2{font-size:16.5px}
+.card .sub{color:var(--ink-70);font-size:13.5px;margin:3px 0 15px;max-width:56ch}
+.card .sub:last-child{margin-bottom:0}
+
+/* ===== form ===== */
+label{display:block;font-size:13px;color:var(--ink-70);margin-bottom:5px}
+input,select{
+  width:100%;font:inherit;font-size:15.5px;color:var(--ink);background:rgba(255,255,255,.05);
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 11px;transition:border-color .12s,box-shadow .12s;
+}
+input::placeholder{color:var(--ink-45)}
+input:hover,select:hover{border-color:rgba(255,255,255,.24)}
+input:focus,select:focus{outline:none;border-color:var(--v);box-shadow:0 0 0 3px rgba(139,92,246,.22)}
+select option{background:#17141F;color:var(--ink)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.check{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;color:var(--ink);cursor:pointer}
+.check input{width:auto;min-height:0;margin-top:3px;accent-color:var(--v)}
+
+/* ===== pulsanti ===== */
+.btn{font:inherit;font-size:15px;font-weight:500;border-radius:var(--r-sm);padding:11px 18px;min-height:44px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:7px;transition:filter .13s,border-color .13s,transform .06s,box-shadow .13s}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,nav button:focus-visible,.sync:focus-visible,.yearnav button:focus-visible{outline:2px solid var(--v);outline-offset:2px}
+.btn.primary{background:var(--grad);color:#170D22;border-color:transparent;font-weight:600;box-shadow:0 6px 22px rgba(139,92,246,.32)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.seal{box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 6px 22px rgba(139,92,246,.32)}
+.btn.ghost{background:var(--glass);color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:rgba(255,255,255,.28);background:var(--glass-2)}
+.btn.danger{background:var(--glass);color:#FFAFAA;border-color:var(--alert-line)}
+.btn.danger:hover{background:var(--alert-tint)}
+.btn.sm{min-height:38px;padding:8px 14px;font-size:14px}
+.linkbtn{border:0;background:none;color:#9DC4FF;font:inherit;font-size:13.5px;cursor:pointer;padding:4px 2px}
+.linkbtn:hover{text-decoration:underline}
+.linkbtn.rm{color:#FFAFAA}
+
+/* ===== calcolatore ===== */
+.hero{background:var(--glass);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-top:14px;box-shadow:var(--shadow);backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3)}
+.qlab{display:block;font-size:13px;color:var(--ink-70);margin-bottom:6px}
+.qwrap{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:var(--r-md);padding:3px 15px;transition:border-color .12s,box-shadow .12s}
+.qwrap:focus-within{border-color:var(--v);box-shadow:0 0 0 3px rgba(139,92,246,.22)}
+.qcur{font-family:'Space Grotesk',sans-serif;font-size:25px;color:var(--ink-45);line-height:1}
+.qwrap input{border:0;background:none;padding:9px 0;font-family:'Space Grotesk',sans-serif;font-size:clamp(26px,7vw,33px);font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.qwrap input:focus{box-shadow:none}
+.netbox{margin-top:18px;padding:17px;border-radius:var(--r-md);background:var(--netto-tint);border:1px solid var(--netto-line)}
+.netbox .lead{color:#8FF0C8;font-size:13.5px;font-weight:500}
+.bignum{font-family:'Space Grotesk',sans-serif;font-size:clamp(36px,10.5vw,54px);font-weight:700;line-height:1.04;letter-spacing:-.02em;color:var(--netto);margin:3px 0 3px}
+.netbox .note{color:#B4E9D2;font-size:13px}
+.holdbox{margin-top:10px;padding:15px 17px;border-radius:var(--r-md);background:var(--imposta-tint);border:1px solid var(--imposta-line)}
+.holdbox .lead{color:#FFD9A6;font-size:13.5px;font-weight:500}
+.holdbox .bignum{color:var(--imposta);font-size:clamp(22px,6vw,28px);margin:3px 0}
+.holdrows{display:grid;gap:7px;margin-top:9px;padding-top:10px;border-top:1px solid var(--imposta-line)}
+.holdrows .hr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--ink-70)}
+.holdrows .hr .amt{color:var(--ink);font-weight:600;font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.accrows{display:grid;gap:2px}
+.accrows .ar{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line-soft);font-size:14px}
+.accrows .ar:last-child{border-bottom:none}
+.accrows .ar .em{color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accrows .ar .qu{color:var(--ink-70);font-size:12.5px;white-space:nowrap}
+.strata{display:flex;height:9px;border-radius:999px;overflow:hidden;margin:17px 0 13px;background:rgba(255,255,255,.08);gap:2px}
+.strata div{transition:width .25s ease;border-radius:999px}
+.legend{display:grid;gap:9px}
+.legend .li{display:grid;grid-template-columns:10px 1fr auto;gap:11px;align-items:baseline;font-size:14.5px}
+.legend .sw{width:10px;height:10px;border-radius:3px;transform:translateY(1px)}
+.legend .amt{font-variant-numeric:tabular-nums;font-weight:600;font-family:'Space Grotesk',sans-serif}
+.legend small{display:block;color:var(--ink-70);font-size:12.5px;line-height:1.35;margin-top:1px}
+
+/* ===== statistiche ===== */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--glass);border:1px solid var(--line);border-top:3px solid rgba(255,255,255,.18);border-radius:var(--r-sm);padding:14px;box-shadow:var(--shadow);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.stat .k{font-size:12.5px;color:var(--ink-70);line-height:1.3}
+.stat .v{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:5px;font-variant-numeric:tabular-nums}
+.stat.n{border-top-color:var(--netto)}.stat.n .v{color:var(--netto)}
+.stat.f{border-top-color:var(--imposta)}.stat.f .v{color:var(--imposta)}
+.stat.c{border-top-color:var(--cassa)}.stat.c .v{color:var(--cassa)}
+
+/* ===== tabelle ===== */
+.tbox{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;font-weight:500;color:var(--ink-70);font-size:12.5px;padding:0 10px 7px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 10px 10px 0;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;padding-right:0;font-variant-numeric:tabular-nums}
+tr.tot td{font-weight:600;border-top:1px solid var(--line);border-bottom:0}
+tr.hi{background:rgba(139,92,246,.14)}
+td input[type=date]{padding:7px 8px;font-size:13.5px;min-width:135px;color-scheme:dark}
+.mini{font-size:12.5px;color:var(--ink-70)}
+.muted{color:var(--ink-70);font-size:14px}
+.empty{color:var(--ink-70);font-size:14px;text-align:center;padding:18px 0}
+
+/* ===== scadenze ===== */
+.sc{display:grid;grid-template-columns:70px 1fr auto;gap:14px;padding:13px 0;border-bottom:1px solid var(--line-soft);align-items:baseline}
+.sc:last-child{border-bottom:0}
+.sc .d{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;line-height:1.15;border-right:1px solid var(--line);padding-right:12px}
+.sc .d small{display:block;font-family:'Hanken Grotesk',sans-serif;font-weight:400;font-size:11.5px;color:var(--ink-45)}
+.sc .t{font-size:14.5px}
+.sc .t small{display:block;color:var(--ink-70);font-size:12.5px;line-height:1.45;margin-top:3px}
+.sc .a{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap;font-size:15px;font-family:'Space Grotesk',sans-serif}
+.sc.past{opacity:.45}
+.sc.next{background:var(--netto-tint);margin:0 -12px;padding:13px 12px;border-radius:var(--r-sm);border-bottom:0}
+.sc.next .d{border-right-color:var(--netto-line)}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;margin-left:7px;font-weight:500;vertical-align:1px}
+.tag.f{background:var(--imposta-tint);color:var(--imposta)}
+.tag.c{background:var(--cassa-tint);color:var(--cassa)}
+.tag.n{background:var(--grad);color:#170D22;font-weight:600}
+.tag.g{background:var(--giro-tint);color:var(--ink-70)}
+
+.bar{height:9px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin:12px 0 8px}
+.bar i{display:block;height:100%;background:var(--grad);border-radius:999px;transition:width .3s}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500}
+.badge.uff{background:var(--netto-tint);color:var(--netto)}
+.badge.st{background:var(--imposta-tint);color:var(--imposta)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:60;background:#17141F;color:var(--ink);padding:11px 20px;border-radius:999px;font-size:14.5px;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:0 8px 28px rgba(0,0,0,.5);border:1px solid var(--line)}
+.toast.on{opacity:1}
+
+/* ===== accesso ===== */
+/* ===== intestazione home ===== */
+.home-header{display:flex;align-items:center;gap:16px;padding:18px 18px}
+.avatar-wrap{border:0;background:none;padding:0;cursor:pointer;flex:none;border-radius:50%;transition:transform .12s}
+.avatar-wrap:hover{transform:scale(1.04)}
+.avatar-wrap:focus-visible{outline:2px solid var(--v);outline-offset:2px}
+.avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;background:var(--grad);border:2.5px solid rgba(255,255,255,.20);display:block}
+.home-mid{flex:1;min-width:0}
+.home-greet{font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:700;color:var(--ink);letter-spacing:-.01em;line-height:1.15}
+.home-greet .nome{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.home-date{font-size:15px;color:var(--ink-70);margin-top:3px;text-transform:capitalize}
+.home-clock{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;color:var(--ink-45);margin-top:4px;letter-spacing:.02em}
+.home-weather{display:flex;align-items:center;gap:10px;flex:none;padding-left:14px;border-left:1px solid var(--line-soft)}
+.wicon{width:52px;height:52px;position:relative;flex:none}
+.wicon svg{width:100%;height:100%;overflow:visible}
+.weather-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.wtemp{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--ink);line-height:1}
+.wcity{font-size:12px;color:var(--ink-70);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:420px){
+  .home-header{flex-wrap:wrap}
+  .home-weather{border-left:0;padding-left:0;margin-left:100px;margin-top:-6px}
+}
+
+.nextdue{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-70);padding:9px 6px 0}
+.nextdue-dot{width:6px;height:6px;border-radius:50%;background:var(--grad);flex:none}
+
+/* animazioni meteo, leggere e continue */
+@keyframes wSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes wDrift{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+@keyframes wFall{0%{transform:translateY(-3px);opacity:0}30%{opacity:1}100%{transform:translateY(9px);opacity:0}}
+@keyframes wFlash{0%,100%{opacity:0}92%{opacity:0}94%{opacity:1}97%{opacity:.3}100%{opacity:0}}
+@keyframes wTwinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.w-sun{animation:wSpin 14s linear infinite;transform-origin:center}
+.w-cloud{animation:wDrift 4s ease-in-out infinite}
+.w-drop{animation:wFall 1.1s linear infinite}
+.w-drop:nth-child(2){animation-delay:.35s}
+.w-drop:nth-child(3){animation-delay:.7s}
+.w-bolt{animation:wFlash 2.6s ease-in-out infinite}
+.w-star{animation:wTwinkle 1.8s ease-in-out infinite}
+
+/* ===== profilo (impostazioni) ===== */
+.profile-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:10px;margin-top:12px}
+.avatar-grid button{border:2px solid transparent;background:none;padding:0;border-radius:50%;cursor:pointer;line-height:0;transition:transform .1s,border-color .1s}
+.avatar-grid button:hover{transform:scale(1.06)}
+.avatar-grid button.sel{border-color:var(--v)}
+.avatar-grid img{width:100%;aspect-ratio:1;border-radius:50%;display:block;object-fit:cover}
+.profile-avatar-lg{width:84px;height:84px;border-radius:50%;object-fit:cover;background:var(--grad);border:2px solid rgba(255,255,255,.18);flex:none}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.toggle-row:last-child{border-bottom:0}
+.toggle-row .t{font-size:14.5px;color:var(--ink)}
+.toggle-row .t small{display:block;color:var(--ink-70);font-size:12.5px;margin-top:2px;font-weight:400}
+
+.authgate{position:fixed;inset:0;z-index:100;background:rgba(11,10,20,.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px}
+.authbox{background:#151220;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;max-width:360px;width:100%;box-shadow:var(--shadow)}
+.authbox .brand{font-size:19px;margin-bottom:3px}
+.authbox .sub{color:var(--ink-70);font-size:13.5px;margin:0 0 18px}
+.authbox label{margin-top:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+
+
+<div id="authGate" class="authgate" style="display:none">
+  <div class="authbox">
+    <div class="brand" style="color:var(--ink)">NettoGiro</div>
+    <p class="sub">Accedi con email e password.</p>
+
+    <div id="authEmailBlock">
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="username" placeholder="nome@esempio.it">
+      <label for="authPass" style="margin-top:10px">Password</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="almeno 6 caratteri">
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost" id="authIn">Accedi</button>
+        <button class="btn ghost" id="authUp">Crea account</button>
+      </div>
+      <button class="linkbtn" id="authForgot" style="margin-top:8px;padding:0">Password dimenticata?</button>
+    </div>
+    <p class="mini" id="authMsg" style="margin-top:14px;min-height:16px"></p>
+  </div>
+</div>
+
+<header>
+  <div class="headrow">
+    <div class="brand">NettoGiro</div>
+    <div class="row" style="gap:8px">
+      <button class="sync" id="sync" data-s="local"><span class="dot"></span><span id="syncTxt">locale</span></button>
+      <div class="yearnav" id="yearnav">
+        <button id="yPrev" aria-label="Anno precedente">‹</button>
+        <span class="y" id="yLabel">2026</span>
+        <button id="yNext" aria-label="Anno successivo">›</button>
+      </div>
+    </div>
+  </div>
+  <nav>
+    <button data-tab="incasso" aria-current="page">Incasso</button>
+    <button data-tab="anno">Anno</button>
+    <button data-tab="scadenze">Scadenze</button>
+    <button data-tab="adempimenti">Adempimenti</button>
+    <button data-tab="impostazioni">Impostazioni</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<!-- ============ INCASSO ============ -->
+<section class="panel on" id="p-incasso">
+
+  <div class="card home-header" id="homeHeader">
+    <button class="avatar-wrap" id="hpAvatarBtn" aria-label="Apri il profilo nelle impostazioni" title="Profilo">
+      <img id="hpAvatar" class="avatar" alt="" src="">
+    </button>
+    <div class="home-mid">
+      <div class="home-greet" id="hpGreet">Ciao</div>
+      <div class="home-date" id="hpDate">—</div>
+      <div class="home-clock num" id="hpClock">--:--:--</div>
+    </div>
+    <div class="home-weather" id="hpWeather" style="display:none">
+      <div class="wicon" id="hpWIcon"></div>
+      <div class="weather-text">
+        <div class="wtemp" id="hpWTemp">—</div>
+        <div class="wcity" id="hpWCity"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nextdue" id="hpNext" style="display:none">
+    <span class="nextdue-dot"></span>
+    <span id="hpNextTxt"></span>
+  </div>
+
+  <div class="hero">
+    <label class="qlab" for="qImp">Totale fattura emessa</label>
+    <div class="qwrap">
+      <span class="qcur">€</span>
+      <input id="qImp" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00">
+    </div>
+    <div class="row" style="margin-top:11px;justify-content:space-between">
+      <label class="check"><input type="checkbox" id="qInt" checked> <span>Il totale include già il 4% integrativo</span></label>
+      <button class="btn primary sm seal" id="qGo">Registra</button>
+    </div>
+
+    <div class="netbox">
+      <div class="lead">Puoi girocontare sul personale</div>
+      <div class="bignum" id="hNetto">€ 0,00</div>
+      <div class="note" id="hFattura">Scrivi l'imponibile qui sopra.</div>
+    </div>
+
+    <div class="holdbox">
+      <div class="lead">Da accantonare, non è girocontabile</div>
+      <div class="bignum" id="hHold">€ 0,00</div>
+      <div class="holdrows">
+        <div class="hr"><span>Imposta sostitutiva</span><span class="amt" id="hHoldImposta">€ 0,00</span></div>
+        <div class="hr"><span>Contributo soggettivo</span><span class="amt" id="hHoldSogg">€ 0,00</span></div>
+      </div>
+    </div>
+
+    <div class="strata" id="hStrata" aria-hidden="true">
+      <div style="background:var(--netto);width:100%"></div>
+      <div style="background:var(--imposta);width:0"></div>
+      <div style="background:var(--cassa);width:0"></div>
+      <div style="background:var(--giro);width:0"></div>
+    </div>
+
+    <div class="legend">
+      <div class="li"><span class="sw" style="background:var(--netto)"></span>
+        <span>Tuo netto<small>resta dopo gli accantonamenti</small></span>
+        <span class="amt" id="lNetto">€ 0,00</span></div>
+      <div class="li"><span class="sw" style="background:var(--imposta)"></span>
+        <span>Imposta sostitutiva<small id="lImpostaNote"></small></span>
+        <span class="amt" id="lImposta">€ 0,00</span></div>
+      <div class="li"><span class="sw" style="background:var(--cassa)"></span>
+        <span>Contributo soggettivo<small id="lSoggNote"></small></span>
+        <span class="amt" id="lSogg">€ 0,00</span></div>
+      <div class="li"><span class="sw" style="background:var(--giro)"></span>
+        <span>Contributo integrativo<small>del cliente, per conto della Cassa: non è tuo</small></span>
+        <span class="amt" id="lInt">€ 0,00</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="aperteCard">
+    <h2>In attesa di incasso</h2>
+    <p class="sub" id="aperteSub">Quando arriva il bonifico basta mettere la data qui.</p>
+    <div id="aperteBox"></div>
+  </div>
+
+  <div class="card" id="fCard">
+    <h2 id="fTitle">Registra la fattura</h2>
+    <p class="sub" id="fSub">Scrivi il totale della fattura, contributo integrativo già compreso: l'imponibile lo scorporiamo noi.</p>
+    <div class="grid g2">
+      <div><label for="fImp">Totale fattura</label><input id="fImp" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+      <div><label for="fCli">Cliente o riferimento</label><input id="fCli" type="text" placeholder="es. Procedura Rossi"></div>
+      <div><label for="fEm">Data emissione</label><input id="fEm" type="date"></div>
+      <div><label for="fInc">Data incasso <span class="mini">— vuota se non ancora incassata</span></label><input id="fInc" type="date"></div>
+    </div>
+    <div class="row" style="margin-top:13px">
+      <label class="check"><input type="checkbox" id="fInt" checked> <span>Il totale include già il 4% integrativo</span></label>
+    </div>
+    <div class="row" style="margin-top:15px">
+      <button class="btn primary seal" id="fSave">Salva fattura</button>
+      <button class="btn ghost" id="fClear">Svuota</button>
+      <button class="btn danger" id="fCancel" style="display:none">Annulla modifica</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ultime registrate</h2>
+    <p class="sub">Le più recenti. L'archivio completo per anno è nella scheda Anno.</p>
+    <div id="recentiBox"></div>
+  </div>
+</section>
+
+<!-- ============ ANNO ============ -->
+<section class="panel" id="p-anno">
+  <div class="stats">
+    <div class="stat"><div class="k">Incassato</div><div class="v" id="stInc">—</div></div>
+    <div class="stat n"><div class="k">Girocontabile</div><div class="v" id="stNet">—</div></div>
+    <div class="stat f"><div class="k">Imposta di competenza</div><div class="v" id="stImp">—</div></div>
+    <div class="stat c"><div class="k">Contributi alla Cassa</div><div class="v" id="stCas">—</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Dettaglio <span id="aYear">2026</span></h2>
+    <p class="sub" id="aSub"></p>
+    <div class="tbox"><table id="aTab"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Fatture dell'anno</h2>
+    <p class="sub" id="listSub"></p>
+    <div id="listBox"></div>
+  </div>
+
+  <div class="card">
+    <h2>Soglia dell'integrativo minimo</h2>
+    <p class="sub" id="sogliaSub"></p>
+    <div class="bar"><i id="sogliaBar" style="width:0"></i></div>
+    <div class="muted" id="sogliaTxt"></div>
+    <p class="mini" style="margin:10px 0 0">Il versamento del minimo integrativo vale comunque a dimostrare la continuità dell'esercizio professionale, anche se il volume d'affari resta sotto soglia.</p>
+  </div>
+
+  <div class="card">
+    <h2>Storico</h2>
+    <p class="sub">Tocca un anno per aprirlo.</p>
+    <div class="tbox" id="storico"></div>
+  </div>
+
+  <div class="card">
+    <h2>Previsione</h2>
+    <p class="sub">Per gli anni senza fatture registrate, questi importi alimentano simulazione e scadenze.</p>
+    <div class="grid g2">
+      <div><label for="prev">Imponibile che prevedi di incassare</label><input id="prev" type="text" inputmode="decimal" placeholder="0"></div>
+      <div><label for="prevVA">Imponibile che prevedi di fatturare</label><input id="prevVA" type="text" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="row" style="margin-top:13px"><button class="btn ghost" id="prevSave">Salva previsione</button></div>
+  </div>
+</section>
+
+<!-- ============ SCADENZE ============ -->
+<section class="panel" id="p-scadenze">
+  <div class="card">
+    <h2>Scadenzario <span id="sYear">2026</span></h2>
+    <p class="sub" id="sSub"></p>
+    <div id="scadBox"></div>
+  </div>
+  <div class="card">
+    <h2>I due calendari</h2>
+    <p class="sub">La Cassa calcola i contributi dell'anno sul reddito dell'anno precedente, il fisco sull'incassato dell'anno stesso. Per questo nel primo anno versi quasi nulla e nel secondo arriva tutto insieme. Le date che cadono di sabato o in giorno festivo slittano al primo feriale.</p>
+    <p class="sub" style="margin-bottom:0">Dal 4 maggio 2026 i contributi si possono versare anche con modello F24, causale <b>E150</b>, codice ente <b>0015</b>, così da compensarli con eventuali crediti. Se hai attivo l'addebito SDD il passaggio va richiesto prima, dal servizio PCM.</p>
+  </div>
+</section>
+
+<!-- ============ ADEMPIMENTI ============ -->
+<section class="panel" id="p-adempimenti">
+  <div class="card">
+    <h2>Quota dell'Ordine <span id="oYear">2026</span></h2>
+    <p class="sub">Contributo annuale di iscrizione all'Ordine.</p>
+    <div class="grid g3">
+      <div><label for="oImp">Importo</label><input id="oImp" type="text" inputmode="decimal"></div>
+      <div><label for="oData">Data di pagamento</label><input id="oData" type="date"></div>
+      <div style="display:flex;align-items:center;padding-top:18px"><label class="check"><input type="checkbox" id="oPag"> <span>Pagata</span></label></div>
+    </div>
+    <div class="row" style="margin-top:13px"><button class="btn primary" id="oSave">Salva</button></div>
+    <div style="margin-top:18px" id="oStorico"></div>
+  </div>
+
+  <div class="card">
+    <h2>Assicurazione professionale <span id="iYear">2026</span></h2>
+    <p class="sub">Polizza RC: copertura, scadenza e premio dell'anno.</p>
+    <div class="grid g2">
+      <div><label for="iIniz">Inizio copertura</label><input id="iIniz" type="date"></div>
+      <div><label for="iScad">Scadenza</label><input id="iScad" type="date"></div>
+      <div><label for="iPremio">Premio</label><input id="iPremio" type="text" inputmode="decimal"></div>
+      <div><label for="iComp">Compagnia o polizza</label><input id="iComp" type="text" placeholder="es. n. 123456"></div>
+    </div>
+    <div class="row" style="margin-top:13px">
+      <label class="check"><input type="checkbox" id="iPag"> <span>Premio pagato</span></label>
+    </div>
+    <div class="row" style="margin-top:15px"><button class="btn primary" id="iSave">Salva</button></div>
+    <div style="margin-top:18px" id="iStorico"></div>
+  </div>
+</section>
+
+<!-- ============ IMPOSTAZIONI ============ -->
+<section class="panel" id="p-impostazioni">
+  <div class="card">
+    <h2>Profilo</h2>
+    <p class="sub">La foto e il nome che vedi nell'intestazione della schermata Incasso.</p>
+    <div class="profile-row">
+      <img id="pfAvatar" class="profile-avatar-lg" alt="" src="">
+      <div class="grid" style="flex:1;min-width:200px;gap:8px">
+        <div class="row">
+          <button class="btn ghost sm" id="pfUpload">Cambia foto</button>
+          <button class="btn ghost sm" id="pfReset" style="display:none">Usa la foto Google</button>
+          <input type="file" id="pfFile" accept="image/*" style="display:none">
+        </div>
+        <div>
+          <label for="pfNome">Nome da mostrare nel saluto</label>
+          <input id="pfNome" type="text" placeholder="es. Giuseppe">
+        </div>
+      </div>
+    </div>
+    <p class="mini" style="margin:14px 0 0">Oppure scegli un avatar</p>
+    <div class="avatar-grid" id="pfGrid"></div>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="pfSave">Salva profilo</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Home e aspetto</h2>
+    <p class="sub">Cosa mostrare nell'intestazione, in cima alla schermata Incasso.</p>
+    <div class="toggle-row">
+      <div class="t">Meteo della tua posizione<small>Chiede il permesso di geolocalizzazione al browser, una sola volta</small></div>
+      <label class="check"><input type="checkbox" id="cMeteo"> <span></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="t">Orologio in formato 24 ore<small>Disattiva per il formato 12 ore con AM/PM</small></div>
+      <label class="check"><input type="checkbox" id="cOre24"> <span></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="t">Promemoria prossima scadenza<small>Una riga sotto l'intestazione con la prossima scadenza in arrivo</small></div>
+      <label class="check"><input type="checkbox" id="cPromemoria"> <span></span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sincronizzazione</h2>
+    <p class="sub" id="syncSub"></p>
+    <div class="row"><span class="tag g" id="syncTag">—</span>
+      <button class="btn ghost sm" id="authOut" style="display:none">Esci dall'account</button></div>
+  </div>
+
+  <div class="card" id="accessiCard" style="display:none">
+    <h2>Cronologia accessi</h2>
+    <p class="sub">Le ultime email che si sono collegate a questo account, più recenti in cima.</p>
+    <div id="accessiBox"><div class="empty">Caricamento…</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Regime</h2>
+    <p class="sub">Cambiando questi valori si ricalcola tutto, anche lo storico.</p>
+    <div class="grid g2">
+      <div><label for="cAvvio">Anno di decorrenza (partita IVA e Cassa)</label><input id="cAvvio" type="number" min="2000" max="2100"></div>
+      <div><label for="cCoeff">Coefficiente di redditività</label>
+        <select id="cCoeff"><option value="0.78">78% — dottori commercialisti</option><option value="0.67">67%</option><option value="0.86">86%</option></select></div>
+      <div><label for="cImposta">Imposta sostitutiva</label>
+        <select id="cImposta"><option value="0.05">5% — nuova attività, primi 5 anni</option><option value="0.15">15% — ordinaria</option></select></div>
+      <div><label for="cSogg">Aliquota soggettivo (%)</label><input id="cSogg" type="number" step="1" min="12" max="100"></div>
+    </div>
+    <div class="grid" style="margin-top:15px;gap:12px">
+      <label class="check"><input type="checkbox" id="cEsonero"> <span>Esonero dal soggettivo minimo per i primi 5 anni<small class="mini" style="display:block">Iscrizione dopo i 35 anni con decorrenza 2017-2026: copre il solo minimo soggettivo.</small></span></label>
+      <label class="check"><input type="checkbox" id="cVersaMin"> <span>Verso comunque il contributo soggettivo minimo<small class="mini" style="display:block">Facoltà prevista dal regolamento per chi è esonerato: costa di più ma alimenta il montante pensionistico.</small></span></label>
+      <label class="check"><input type="checkbox" id="cMinInt"> <span>Contributo integrativo minimo dovuto<small class="mini" style="display:block">Non dovuto solo da chi si iscrive prima dei 35 anni.</small></span></label>
+      <label class="check"><input type="checkbox" id="cDelibera"> <span>Iscrizione alla Cassa già deliberata<small class="mini" style="display:block">Finché la domanda è in esame, i minimi del primo anno arrivano in un'unica soluzione.</small></span></label>
+      <label class="check"><input type="checkbox" id="cLordo"> <span>Reddito comunicato alla Cassa al lordo dei contributi<small class="mini" style="display:block">Prassi delle casse professionali, da confermare col servizio PCE.</small></span></label>
+      <label class="check"><input type="checkbox" id="cPrudente"> <span>Accantonamento prudente<small class="mini" style="display:block">Calcola l'imposta senza scomputare la deduzione dei contributi: metti da parte un po' di più.</small></span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Accantonamento per gli acconti</h2>
+    <p class="sub">Nel primo anno non versi acconti, ma l'anno dopo paghi saldo più acconti. Il moltiplicatore mette da parte già ora quello che uscirà due volte.</p>
+    <div class="grid g2">
+      <div><label for="cMoltPrimo">Moltiplicatore nell'anno di avvio</label><input id="cMoltPrimo" type="number" step="0.1" min="1" max="3"></div>
+      <div><label for="cMoltDopo">Moltiplicatore dagli anni successivi</label><input id="cMoltDopo" type="number" step="0.1" min="1" max="3"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Parametri della Cassa</h2>
+    <p class="sub">Ufficiali fino al 2026, poi proiettati con la rivalutazione stimata. Sostituiscili appena la Cassa delibera.</p>
+    <div class="grid g2">
+      <div><label for="cInfl">Rivalutazione annua stimata (%)</label><input id="cInfl" type="number" step="0.1" min="0" max="10"></div>
+      <div><label for="cOrdineDef">Quota Ordine di riferimento</label><input id="cOrdineDef" type="text" inputmode="decimal"></div>
+    </div>
+    <div class="tbox" style="margin-top:16px"><table id="parTab"></table></div>
+    <p class="mini" style="margin-top:10px">Minimi e tetto reddituale 2026 sono quelli deliberati dalla Cassa. Il contributo di maternità 2026 non è ancora stato fissato: qui trovi il valore 2025 come segnaposto, sostituiscilo appena esce.</p>
+    <div class="row" style="margin-top:15px"><button class="btn primary" id="cSave">Salva impostazioni</button></div>
+  </div>
+
+  <div class="card">
+    <h2>Dati</h2>
+    <p class="sub">Esporta ogni tanto: è il tuo unico backup finché non colleghiamo Firebase.</p>
+    <div class="row">
+      <button class="btn ghost" id="expBtn">Esporta backup</button>
+      <button class="btn ghost" id="impBtn">Importa backup</button>
+      <input type="file" id="impFile" accept="application/json" style="display:none">
+    </div>
+  </div>
+</section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- SDK Firebase: caricati sempre, ma restano inerti finché FIREBASE_CONFIG più sotto
+     non viene compilato con i valori reali del tuo progetto. -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script>
+
+
+/* =========================================================
+   Configurazione Firebase — incolla qui i 6 valori dalla Console
+   (Impostazioni progetto → Generale → Configurazione SDK). Finché
+   apiKey inizia per "INSERISCI", Firebase resta spento e l'app usa
+   solo questo dispositivo: nulla si rompe se lasci questi valori così.
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyArC2fx3cEXAdR-jZJ4-_ORo-vN_aOEBsQ",
+  authDomain: "nettogiro.firebaseapp.com",
+  projectId: "nettogiro",
+  storageBucket: "nettogiro.firebasestorage.app",
+  messagingSenderId: "927897673555",
+  appId: "1:927897673555:web:477b87d2188458da740ba6"
+};
+const FIREBASE_ATTIVO = !!(FIREBASE_CONFIG.apiKey && !String(FIREBASE_CONFIG.apiKey).startsWith('INSERISCI'));
+let fbAuth=null, fbDb=null, fbUser=null;
+if (FIREBASE_ATTIVO && window.firebase) {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  fbAuth = firebase.auth();
+  fbDb = firebase.firestore();
+}
+
+/* =========================================================
+   Persistenza a tre livelli:
+   1) window.storage — quando l'app gira come artifact su claude.ai
+   2) Firestore — quando FIREBASE_CONFIG è compilato e sei autenticato
+   3) localStorage — solo su questo dispositivo, sempre disponibile
+   L'interfaccia resta la stessa ovunque: get() e set().
+   ========================================================= */
+const KEY='nettofattura:v1';
+const memFallback={};
+const store={
+  mode:'memoria', label:'',
+  _rileva(){
+    if(window.storage){this.mode='cloud';this.label='archivio remoto dell’app';return}
+    if(FIREBASE_ATTIVO&&fbUser){this.mode='firebase';this.label=`Firebase — ${fbUser.email}`;return}
+    this.mode='dispositivo';this.label='memoria di questo browser';
+  },
+  async get(){
+    this._rileva();
+    if(this.mode==='cloud'){
+      try{const r=await window.storage.get(KEY);return r&&r.value?JSON.parse(r.value):null}catch(e){return null}
+    }
+    if(this.mode==='firebase'){
+      try{
+        const doc=await fbDb.collection('nettogiro').doc(fbUser.uid).get();
+        return doc.exists?JSON.parse(doc.data().json):null;
+      }catch(e){return null}
+    }
+    try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}
+    catch(e){this.mode='memoria';this.label='sessione corrente';return memFallback[KEY]||null}
+  },
+  async set(obj){
+    this._rileva();
+    const s=JSON.stringify(obj);
+    if(this.mode==='cloud'){await window.storage.set(KEY,s);return}
+    if(this.mode==='firebase'){
+      await fbDb.collection('nettogiro').doc(fbUser.uid)
+        .set({json:s,aggiornato:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      return;
+    }
+    try{localStorage.setItem(KEY,s)}catch(e){memFallback[KEY]=obj;throw e}
+  }
+};
+function setSync(stato){
+  const el=document.getElementById('sync'), t=document.getElementById('syncTxt');
+  el.dataset.s=stato;
+  t.textContent={ok:'sincronizzato',save:'salvo…',local:'solo qui',err:'non salvato'}[stato];
+}
+async function save(){
+  setSync('save');
+  try{await store.set(S);setSync((store.mode==='cloud'||store.mode==='firebase')?'ok':'local')}
+  catch(e){setSync('err');toast('Salvataggio non riuscito')}
+}
+
+/* =========================================================
+   Stato
+   ========================================================= */
+const CFG_DEF={
+  annoAvvio:2026, coeff:0.78, aliquotaImposta:0.05, aliquotaSoggettivo:12,
+  esoneroMinSogg:true, minIntDovuto:true, redditoAlLordo:true, prudente:true, deliberaFatta:false,
+  versaMinimoSogg:false,
+  moltPrimo:2, moltDopo:1, inflazione:1.5, quotaOrdine:330,
+  meteoAttivo:true, ore24:true, promemoriaHome:true
+};
+/* Valori ufficiali CNPADC */
+const PAR_UFF={
+  2025:{minSogg:3140,minInt:942,mat:74.92,limite:206800},
+  2026:{minSogg:3180,minInt:954,mat:74.92,limite:209300}
+};
+let S={cfg:{...CFG_DEF},fatture:[],par:{},ordine:{},assic:{},previsione:{},profilo:{}};
+let anno=CFG_DEF.annoAvvio, tab='incasso', editId=null;
+const FALLBACK_AVATAR='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#241a36"/><circle cx="50" cy="38" r="18" fill="#F4F2FA"/><ellipse cx="50" cy="92" rx="30" ry="26" fill="#F4F2FA"/></svg>');
+
+/* =========================================================
+   Utilità
+   ========================================================= */
+const eur=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(isFinite(n)?n:0);
+const eur0=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(isFinite(n)?n:0);
+const dmy=s=>{if(!s)return '—';const[a,m,g]=s.split('-');return `${g}/${m}/${a}`};
+const yOf=s=>s?parseInt(s.slice(0,4),10):null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const oggiISO=()=>new Date().toISOString().slice(0,10);
+function parseNum(v){
+  v=String(v??'').replace(/[€\s\u00A0]/g,'').trim();
+  if(!v)return 0;
+  if(v.includes(',')) v=v.replace(/\./g,'').replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(v)) v=v.replace(/\./g,'');
+  const n=parseFloat(v);return isFinite(n)?n:0;
+}
+const FESTIVI=['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'];
+function shiftData(iso){
+  const d=new Date(iso+'T12:00:00');
+  for(let i=0;i<12;i++){
+    const g=d.getDay(), md=d.toISOString().slice(5,10);
+    if(g===0||g===6||FESTIVI.includes(md)) d.setDate(d.getDate()+1); else break;
+  }
+  return d.toISOString().slice(0,10);
+}
+let toastT;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200)}
+
+function par(y){
+  if(S.par[y]) return {...S.par[y],fonte:'manuale'};
+  if(PAR_UFF[y]) return {...PAR_UFF[y],fonte:'ufficiale'};
+  const base=PAR_UFF[2026], k=Math.pow(1+S.cfg.inflazione/100,y-2026);
+  if(y<2025) return {minSogg:0,minInt:0,mat:0,limite:base.limite,fonte:'stimato'};
+  return {minSogg:Math.round(base.minSogg*k),minInt:Math.round(base.minInt*k),
+          mat:Math.round(base.mat*k*100)/100,limite:Math.round(base.limite*k/100)*100,fonte:'stimato'};
+}
+const inQuinquennio=y=>y>=S.cfg.annoAvvio&&y<=S.cfg.annoAvvio+4;
+const aliqSogg=()=>S.cfg.aliquotaSoggettivo/100;
+const molt=y=>y===S.cfg.annoAvvio?S.cfg.moltPrimo:S.cfg.moltDopo;
+/* Dal totale fattura all'imponibile: si divide per 1,04, non si sottrae il 4% */
+const totaleAImponibile=(tot,conInt)=>conInt?tot/1.04:tot;
+const imponibileATotale=(imp,conInt)=>conInt?imp*1.04:imp;
+
+/* =========================================================
+   Motore di calcolo
+   ========================================================= */
+function incassato(y){
+  const f=S.fatture.filter(x=>yOf(x.inc)===y).reduce((a,b)=>a+b.imp,0);
+  return f>0?f:(S.previsione[y]?.inc||0);
+}
+function volumeAffari(y){
+  const f=S.fatture.filter(x=>yOf(x.em)===y).reduce((a,b)=>a+b.imp,0);
+  return f>0?f:(S.previsione[y]?.va||0);
+}
+const integrativoAddebitato=y=>S.fatture.filter(x=>yOf(x.inc)===y&&x.int).reduce((a,b)=>a+b.imp*0.04,0);
+
+/* Cassa: anno di contribuzione N, calcolato sui dati di N-1 */
+function cassa(N){
+  const p=par(N), prec=N-1;
+  const redditoPrec=incassato(prec)*S.cfg.coeff;
+  const baseSogg=Math.min(redditoPrec,p.limite);
+  const soggAliquota=baseSogg*aliqSogg();
+  const esonerato=S.cfg.esoneroMinSogg&&inQuinquennio(N)&&!S.cfg.versaMinimoSogg;
+  const minSoggDovuto=(N>=S.cfg.annoAvvio&&!esonerato)?p.minSogg:0;
+  const soggTot=Math.max(soggAliquota,minSoggDovuto);
+  const soggEcc=Math.max(0,soggTot-minSoggDovuto);
+
+  const intMaturato=volumeAffari(prec)*0.04;
+  const minIntDovuto=(N>=S.cfg.annoAvvio&&S.cfg.minIntDovuto)?p.minInt:0;
+  const intTot=Math.max(intMaturato,minIntDovuto);
+  const intEcc=Math.max(0,intTot-minIntDovuto);
+  const intACarico=Math.max(0,minIntDovuto-intMaturato);
+  const mat=N>=S.cfg.annoAvvio?p.mat:0;
+
+  return {p,redditoPrec,soggAliquota,minSoggDovuto,soggTot,soggEcc,esonerato,
+          intMaturato,minIntDovuto,intTot,intEcc,intACarico,mat,
+          deducibili:soggTot+mat+intACarico, totaleCassa:soggTot+mat+intTot};
+}
+function fisco(Y){
+  const redditoLordo=incassato(Y)*S.cfg.coeff;
+  const ded=S.cfg.prudente?0:cassa(Y).deducibili;
+  const imponibile=Math.max(0,redditoLordo-ded);
+  return {redditoLordo,ded,imponibile,imposta:Y>=S.cfg.annoAvvio?imponibile*S.cfg.aliquotaImposta:0};
+}
+function acconti(Y){
+  const base=Y-1>=S.cfg.annoAvvio?fisco(Y-1).imposta:0;
+  if(base<51.65) return {tot:0,prima:0,seconda:0,base};
+  if(base<257.52) return {tot:base,prima:0,seconda:base,base};
+  return {tot:base,prima:base*0.4,seconda:base*0.6,base};
+}
+const saldo=Y=>Math.max(0,fisco(Y).imposta-acconti(Y).tot);
+
+function scomponi(imp,conInt,y){
+  const m=molt(y);
+  const integrativo=conInt?imp*0.04:0;
+  const reddito=imp*S.cfg.coeff;
+  const impostaAcc=reddito*S.cfg.aliquotaImposta*m;
+  const soggAcc=reddito*aliqSogg();
+  return {imp,integrativo,totFattura:imp+integrativo,impostaAcc,soggAcc,
+          netto:Math.max(0,imp-impostaAcc-soggAcc),molt:m};
+}
+
+/* =========================================================
+   Calcolatore
+   ========================================================= */
+function renderIncasso(){
+  const totale=parseNum($('qImp').value), conInt=$('qInt').checked;
+  const imp=totaleAImponibile(totale,conInt);
+  const y=yOf($('fInc').value)||yOf($('fEm').value)||anno;
+  const s=scomponi(imp,conInt,y);
+
+  $('hNetto').textContent=eur(s.netto);
+  $('hFattura').textContent=totale>0
+    ? `Totale ${eur(totale)}${conInt?` — imponibile ${eur(imp)}, di cui ${eur(s.integrativo)} di integrativo`:''}.`
+    : "Scrivi il totale della fattura qui sopra.";
+  $('hHold').textContent=eur(s.impostaAcc+s.soggAcc);
+  $('hHoldImposta').textContent=eur(s.impostaAcc);
+  $('hHoldSogg').textContent=eur(s.soggAcc);
+  $('lNetto').textContent=eur(s.netto);
+  $('lImposta').textContent=eur(s.impostaAcc);
+  $('lSogg').textContent=eur(s.soggAcc);
+  $('lInt').textContent=eur(s.integrativo);
+  $('lImpostaNote').textContent=`${(S.cfg.aliquotaImposta*100).toLocaleString('it-IT')}% su ${S.cfg.coeff*100}% dell'imponibile`+
+    (s.molt>1?`, per ${s.molt.toLocaleString('it-IT')} a copertura degli acconti`:'');
+  $('lSoggNote').textContent=`${S.cfg.aliquotaSoggettivo}% del reddito, alla Cassa il 20/12/${y+1}`;
+
+  const tot=s.netto+s.impostaAcc+s.soggAcc+s.integrativo||1;
+  const d=$('hStrata').children;
+  [s.netto,s.impostaAcc,s.soggAcc,s.integrativo].forEach((v,i)=>d[i].style.width=(v/tot*100)+'%');
+}
+
+/* =========================================================
+   Righe fattura, condivise fra le due schede
+   ========================================================= */
+function righe(list,conAnno){
+  return `<div class="tbox"><table>
+    <tr><th>Emessa</th><th>Riferimento</th><th class="r">Imponibile</th><th>Incassata il</th><th></th></tr>`+
+    list.map(x=>{
+      const s=scomponi(x.imp,x.int,yOf(x.inc)||anno);
+      return `<tr class="${x.id===editId?'hi':''}">
+        <td>${dmy(x.em)}</td>
+        <td>${esc(x.cli)||'<span class="mini">senza riferimento</span>'}
+          <small class="mini" style="display:block">netto ${eur(s.netto)}${x.int?` · integr. ${eur(s.integrativo)}`:' · senza integrativo'}</small></td>
+        <td class="r">${eur(x.imp)}</td>
+        <td><input type="date" data-inc="${x.id}" value="${x.inc||''}">${x.inc?'':'<small class="mini" style="display:block">aperta</small>'}</td>
+        <td class="r" style="white-space:nowrap">
+          <button class="linkbtn" data-edit="${x.id}">modifica</button>
+          <button class="linkbtn rm" data-del="${x.id}">elimina</button></td></tr>`;
+    }).join('')+'</table></div>';
+}
+function legaRighe(box){
+  box.querySelectorAll('[data-inc]').forEach(inp=>inp.onchange=async()=>{
+    const fa=S.fatture.find(x=>x.id===inp.dataset.inc);if(!fa)return;
+    fa.inc=inp.value||null;await save();
+    if(fa.inc) anno=yOf(fa.inc);
+    renderAll();toast(fa.inc?'Incasso registrato':'Fattura riaperta');
+  });
+  box.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>apriModifica(b.dataset.edit));
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    const fa=S.fatture.find(x=>x.id===b.dataset.del);
+    if(!confirm(`Eliminare la fattura da ${eur(fa?fa.imp:0)}?`))return;
+    if(editId===b.dataset.del) chiudiModifica();
+    S.fatture=S.fatture.filter(x=>x.id!==b.dataset.del);
+    await save();renderAll();toast('Fattura eliminata');
+  });
+}
+
+function renderAperte(){
+  const ap=S.fatture.filter(x=>!x.inc).sort((a,b)=>(a.em||'').localeCompare(b.em||''));
+  $('aperteCard').style.display=ap.length?'':'none';
+  if(!ap.length)return;
+  const tot=ap.reduce((a,b)=>a+b.imp,0);
+  $('aperteSub').textContent=`${ap.length} ${ap.length===1?'fattura emessa e non ancora incassata':'fatture emesse e non ancora incassate'}, per ${eur(tot)}. Metti la data e l'app fa il resto.`;
+  $('aperteBox').innerHTML=righe(ap);
+  legaRighe($('aperteBox'));
+}
+function renderRecenti(){
+  const r=[...S.fatture].sort((a,b)=>(b.em||'').localeCompare(a.em||'')).slice(0,6);
+  if(!r.length){$('recentiBox').innerHTML='<div class="empty">Nessuna fattura registrata.</div>';return}
+  $('recentiBox').innerHTML=righe(r);
+  legaRighe($('recentiBox'));
+}
+function renderElencoAnno(){
+  const f=S.fatture.filter(x=>yOf(x.inc)===anno||yOf(x.em)===anno)
+                   .sort((a,b)=>(b.em||'').localeCompare(a.em||''));
+  if(!f.length){$('listBox').innerHTML='<div class="empty">Nessuna fattura in questo anno.</div>';$('listSub').textContent='';return}
+  const inc=f.filter(x=>yOf(x.inc)===anno).reduce((a,b)=>a+b.imp,0);
+  const att=f.filter(x=>!x.inc).reduce((a,b)=>a+b.imp,0);
+  $('listSub').textContent=`${f.length} fatture · incassato ${eur(inc)}`+(att>0?` · da incassare ${eur(att)}`:'');
+  $('listBox').innerHTML=righe(f);
+  legaRighe($('listBox'));
+}
+
+/* =========================================================
+   Anno
+   ========================================================= */
+function renderAnno(){
+  $('aYear').textContent=anno;$('sYear').textContent=anno;
+  const inc=incassato(anno), va=volumeAffari(anno), f=fisco(anno), c=cassa(anno), m=molt(anno);
+  const accantonato=inc*S.cfg.coeff*(S.cfg.aliquotaImposta*m+aliqSogg());
+  const netto=Math.max(0,inc-accantonato);
+
+  $('stInc').textContent=eur0(inc);
+  $('stNet').textContent=eur0(netto);
+  $('stImp').textContent=eur0(f.imposta);
+  $('stCas').textContent=eur0(c.totaleCassa);
+
+  const stimato=!S.fatture.some(x=>yOf(x.inc)===anno)&&inc>0;
+  $('aSub').textContent=anno<S.cfg.annoAvvio?'Anno precedente all’avvio dell’attività.'
+    :(stimato?'Valori basati sulla previsione di incasso.':'Valori basati sulle fatture registrate.');
+
+  const r=(l,v,note)=>`<tr><td>${l}${note?`<small class="mini" style="display:block">${note}</small>`:''}</td><td class="r">${v}</td></tr>`;
+  $('aTab').innerHTML='<tr><th>Voce</th><th class="r">Importo</th></tr>'+
+    r('Incassato nell’anno',eur(inc),'imponibile delle fatture incassate')+
+    r('Fatturato nell’anno',eur(va),'volume d’affari, base dell’integrativo')+
+    r('Integrativo incassato dai clienti',eur(integrativoAddebitato(anno)),'partita di giro, va alla Cassa')+
+    r('Reddito forfettario',eur(f.redditoLordo),`${S.cfg.coeff*100}% dell’incassato`)+
+    (S.cfg.prudente?'':r('Contributi dedotti',`− ${eur(f.ded)}`,'versati alla Cassa nell’anno'))+
+    r('<b>Imposta sostitutiva di competenza</b>',`<b>${eur(f.imposta)}</b>`,`${(S.cfg.aliquotaImposta*100).toLocaleString('it-IT')}% — a saldo il 30/6/${anno+1}`)+
+    r('Soggettivo maturato',eur(f.redditoLordo*aliqSogg()),`${S.cfg.aliquotaSoggettivo}% del reddito — alla Cassa il 20/12/${anno+1}`)+
+    r('Contributi dovuti alla Cassa quest’anno',eur(c.totaleCassa),`calcolati sui dati ${anno-1}`+(c.esonerato?' · esonero dal minimo soggettivo attivo':''))+
+    (c.intACarico>0?r('di cui integrativo minimo a tuo carico',eur(c.intACarico),'quota non coperta dal 4%: è un costo, ed è deducibile'):'')+
+    `<tr class="tot"><td>Accantonato dagli incassi<small class="mini" style="display:block">imposta per ${m.toLocaleString('it-IT')} più soggettivo</small></td><td class="r">${eur(accantonato)}</td></tr>`+
+    `<tr class="tot"><td><b>Girocontabile sul personale</b></td><td class="r"><b>${eur(netto)}</b></td></tr>`;
+
+  const pN=par(anno+1), soglia=S.cfg.minIntDovuto?pN.minInt/0.04:0;
+  if(soglia>0){
+    $('sogliaSub').textContent=`Il minimo ${anno+1} di ${eur0(pN.minInt)} si versa comunque. Il 4% sul fatturato ${anno} lo copre da ${eur0(soglia)} in su.`;
+    $('sogliaBar').style.width=Math.min(100,va/soglia*100)+'%';
+    $('sogliaTxt').innerHTML=va>=soglia
+      ? `Fatturato ${eur(va)}: soglia superata, l’integrativo resta interamente a carico dei clienti.`
+      : `Fatturato ${eur(va)} su ${eur0(soglia)}. Restano <b>${eur(Math.max(0,pN.minInt-va*0.04))}</b> a tuo carico, deducibili.`;
+  }else{
+    $('sogliaSub').textContent='Minimo integrativo non dovuto secondo le impostazioni attuali.';
+    $('sogliaBar').style.width='0';$('sogliaTxt').textContent='';
+  }
+
+  $('prev').value=S.previsione[anno]?.inc||'';
+  $('prevVA').value=S.previsione[anno]?.va||'';
+
+  const ultimo=Math.max(new Date().getFullYear()+5,S.cfg.annoAvvio+5);
+  let h='<table><tr><th>Anno</th><th class="r">Incassato</th><th class="r">Imposta</th><th class="r">Cassa</th><th class="r">Netto</th></tr>';
+  for(let y=S.cfg.annoAvvio;y<=ultimo;y++){
+    const i=incassato(y),fi=fisco(y),ca=cassa(y);
+    const n=Math.max(0,i-i*S.cfg.coeff*(S.cfg.aliquotaImposta*molt(y)+aliqSogg()));
+    h+=`<tr class="${y===anno?'hi':''}"><td><button class="linkbtn" data-y="${y}"><b>${y}</b></button></td>
+      <td class="r">${eur0(i)}</td><td class="r">${eur0(fi.imposta)}</td>
+      <td class="r">${eur0(ca.totaleCassa)}</td><td class="r">${eur0(n)}</td></tr>`;
+  }
+  $('storico').innerHTML=h+'</table>';
+  $('storico').querySelectorAll('[data-y]').forEach(b=>b.onclick=()=>{anno=+b.dataset.y;renderAll();window.scrollTo({top:0,behavior:'smooth'})});
+  renderElencoAnno();
+}
+
+/* =========================================================
+   Scadenze
+   ========================================================= */
+function renderScadenze(){
+  const Y=anno, c=cassa(Y), acc=acconti(Y), oggi=oggiISO();
+  const items=[];
+  const add=(md,tit,note,importo,tipo)=>{const orig=`${Y}-${md}`;items.push({d:shiftData(orig),orig,tit,note,importo,tipo})};
+
+  const minimiTot=c.minSoggDovuto+c.minIntDovuto;
+  if(minimiTot>0){
+    const voci=`minimo integrativo ${eur(c.minIntDovuto)}`+(c.minSoggDovuto>0?` e minimo soggettivo ${eur(c.minSoggDovuto)}`:'');
+    if(Y===S.cfg.annoAvvio&&!S.cfg.deliberaFatta){
+      add('06-01',`Contributi minimi ${Y}, importo intero`,
+        `${voci}. Con la domanda ancora in delibera le rate ordinarie non ti sono state addebitate: la Cassa chiederà tutto dopo l’accoglimento. Domanda entro i 6 mesi dai requisiti: nessuna sanzione, solo interessi legali all’1,60% annuo.`,minimiTot,'c');
+    }else{
+      add('05-31','Contributi minimi, prima rata',`Metà di ${voci}`,minimiTot/2,'c');
+      add('10-31','Contributi minimi, seconda rata','Saldo dei minimi dell’anno',minimiTot/2,'c');
+    }
+  }
+  const saldoPrec=Y-1>=S.cfg.annoAvvio?saldo(Y-1):0;
+  if(saldoPrec>0||acc.prima>0)
+    add('06-30','Saldo e primo acconto',
+      `Saldo imposta ${Y-1} ${eur(saldoPrec)}${acc.prima>0?` più primo acconto ${Y} ${eur(acc.prima)}, il 40%`:''}. Con lo 0,40% slitta al 30/7, e negli ultimi anni i forfettari hanno avuto proroga a luglio.`,
+      saldoPrec+acc.prima,'f');
+  if(acc.seconda>0) add('11-30','Secondo acconto',`Il 60% dell’acconto ${Y}, calcolato sull’imposta ${Y-1}`,acc.seconda,'f');
+  add('12-01','Comunicazione dati reddituali',`Servizio PCE: reddito e volume d’affari ${Y-1}. Nessun versamento, ma 15 € di sanzione se comunichi in ritardo.`,null,'c');
+  const ecc=c.soggEcc+c.intEcc+c.mat;
+  if(ecc>0) add('12-20','Eccedenze e maternità',
+    `Soggettivo ${eur(c.soggEcc)} · integrativo ${eur(c.intEcc)} · maternità ${eur(c.mat)}. Rateizzabile in 2, 3 o 4 rate sopra i 1.000 €.`,ecc,'c');
+
+  const o=S.ordine[Y]||{};
+  if(!o.pagata) add('03-31','Quota dell’Ordine','Promemoria: la data esatta la fissa l’Ordine ogni anno.',o.importo||S.cfg.quotaOrdine,'g');
+  const a=S.assic[Y]||{};
+  if(a.scadenza) items.push({d:a.scadenza,tit:'Scadenza assicurazione',note:'Rinnovo della polizza RC professionale',importo:a.premio||null,tipo:'g'});
+
+  items.sort((x,z)=>x.d.localeCompare(z.d));
+  const tot=items.reduce((s,i)=>s+(i.importo||0),0);
+  const prossima=items.find(i=>i.d>=oggi);
+  $('sSub').textContent=Y<S.cfg.annoAvvio?'Anno precedente all’avvio.':`Uscite previste nell’anno: ${eur(tot)}`;
+  if(!items.length){$('scadBox').innerHTML='<div class="empty">Nessuna scadenza in questo anno.</div>';return}
+
+  $('scadBox').innerHTML=items.map(i=>{
+    const past=i.d<oggi, next=i===prossima;
+    const tag=i.tipo==='f'?'<span class="tag f">fisco</span>':i.tipo==='c'?'<span class="tag c">Cassa</span>':'<span class="tag g">altro</span>';
+    const slitt=i.orig&&i.orig!==i.d?` <span class="mini">(termine ${dmy(i.orig).slice(0,5)}, festivo)</span>`:'';
+    return `<div class="sc${past?' past':''}${next?' next':''}">
+      <div class="d">${dmy(i.d).slice(0,5)}<small>${i.d.slice(0,4)}</small></div>
+      <div class="t">${i.tit}${tag}${next?'<span class="tag n">prossima</span>':''}<small>${i.note}${slitt}</small></div>
+      <div class="a">${i.importo!=null?eur(i.importo):'—'}</div></div>`;
+  }).join('');
+}
+
+/* =========================================================
+   Adempimenti
+   ========================================================= */
+function renderAdempimenti(){
+  $('oYear').textContent=anno;$('iYear').textContent=anno;
+  const o=S.ordine[anno]||{};
+  $('oImp').value=o.importo??S.cfg.quotaOrdine;$('oData').value=o.data||'';$('oPag').checked=!!o.pagata;
+  const a=S.assic[anno]||{};
+  $('iIniz').value=a.inizio||'';$('iScad').value=a.scadenza||'';
+  $('iPremio').value=a.premio??'';$('iComp').value=a.compagnia||'';$('iPag').checked=!!a.pagato;
+
+  const anni=[...new Set([...Object.keys(S.ordine),...Object.keys(S.assic)])].map(Number).sort((x,y)=>y-x);
+  const so=anni.filter(y=>S.ordine[y]);
+  $('oStorico').innerHTML=so.length
+    ? '<div class="tbox"><table><tr><th>Anno</th><th class="r">Importo</th><th class="r">Pagata il</th></tr>'+
+      so.map(y=>`<tr><td>${y}</td><td class="r">${eur(S.ordine[y].importo||0)}</td><td class="r">${S.ordine[y].pagata?dmy(S.ordine[y].data):'<span class="mini">no</span>'}</td></tr>`).join('')+'</table></div>'
+    : '<div class="empty">Nessun anno registrato.</div>';
+  const sa=anni.filter(y=>S.assic[y]);
+  $('iStorico').innerHTML=sa.length
+    ? '<div class="tbox"><table><tr><th>Anno</th><th>Copertura</th><th class="r">Premio</th><th class="r">Pagato</th></tr>'+
+      sa.map(y=>{const v=S.assic[y];return `<tr><td>${y}</td><td>${dmy(v.inizio)} → ${dmy(v.scadenza)}<small class="mini" style="display:block">${esc(v.compagnia)||''}</small></td><td class="r">${eur(v.premio||0)}</td><td class="r">${v.pagato?'sì':'<span class="mini">no</span>'}</td></tr>`}).join('')+'</table></div>'
+    : '<div class="empty">Nessun anno registrato.</div>';
+}
+
+/* =========================================================
+   Impostazioni
+   ========================================================= */
+function renderImpostazioni(){
+  const c=S.cfg;
+  $('cAvvio').value=c.annoAvvio;$('cCoeff').value=c.coeff;$('cImposta').value=c.aliquotaImposta;
+  $('cSogg').value=c.aliquotaSoggettivo;$('cEsonero').checked=c.esoneroMinSogg;$('cMinInt').checked=c.minIntDovuto;
+  $('cDelibera').checked=c.deliberaFatta;$('cVersaMin').checked=c.versaMinimoSogg;$('cLordo').checked=c.redditoAlLordo;$('cPrudente').checked=c.prudente;
+  $('cMoltPrimo').value=c.moltPrimo;$('cMoltDopo').value=c.moltDopo;
+  $('cInfl').value=c.inflazione;$('cOrdineDef').value=c.quotaOrdine;
+  $('cMeteo').checked=c.meteoAttivo;$('cOre24').checked=c.ore24;$('cPromemoria').checked=c.promemoriaHome;
+  $('pfNome').value=(S.profilo&&S.profilo.nome)||(fbUser&&fbUser.displayName)||'';
+  aggiornaAvatar();
+
+  if(store.mode==='firebase'){
+    $('syncTag').textContent='sincronizzato — '+fbUser.email;
+    $('syncSub').textContent='I dati sono su Firebase e ti seguono su ogni dispositivo dove accedi con questo account. La spia in alto resta verde finché ogni modifica viene scritta.';
+    $('authOut').style.display='';
+    $('accessiCard').style.display='';
+    renderCronologiaAccessi();
+  }else if(store.mode==='cloud'){
+    $('syncTag').textContent='sincronizzato';
+    $('syncSub').textContent=`I dati sono salvati nell’${store.label} e ti seguono fra i dispositivi. La spia in alto resta verde finché ogni modifica viene scritta.`;
+    $('authOut').style.display='none';
+    $('accessiCard').style.display='none';
+  }else{
+    $('syncTag').textContent=FIREBASE_ATTIVO?'connessione a Firebase…':'solo su questo dispositivo';
+    $('syncSub').textContent=FIREBASE_ATTIVO
+      ? 'Firebase è configurato ma non risulta un accesso attivo: ricarica la pagina e accedi dalla schermata iniziale.'
+      : `I dati sono nella ${store.label}: restano su questo dispositivo e la spia resta gialla. Segui la guida per collegare Firebase e avere la spia verde su ogni dispositivo.`;
+    $('authOut').style.display='none';
+    $('accessiCard').style.display='none';
+  }
+
+  let h='<tr><th>Anno</th><th class="r">Min. soggettivo</th><th class="r">Min. integrativo</th><th class="r">Maternità</th><th class="r">Tetto reddito</th></tr>';
+  for(let y=c.annoAvvio;y<=c.annoAvvio+9;y++){
+    const p=par(y);
+    const b=p.fonte==='stimato'?'<span class="badge st">stima</span>':`<span class="badge uff">${p.fonte==='manuale'?'tuo':'ufficiale'}</span>`;
+    h+=`<tr><td>${y} ${b}</td>
+      <td class="r"><input data-p="${y}:minSogg" type="text" inputmode="decimal" value="${p.minSogg}" style="max-width:104px;text-align:right"></td>
+      <td class="r"><input data-p="${y}:minInt" type="text" inputmode="decimal" value="${p.minInt}" style="max-width:104px;text-align:right"></td>
+      <td class="r"><input data-p="${y}:mat" type="text" inputmode="decimal" value="${p.mat}" style="max-width:94px;text-align:right"></td>
+      <td class="r"><input data-p="${y}:limite" type="text" inputmode="decimal" value="${p.limite}" style="max-width:114px;text-align:right"></td></tr>`;
+  }
+  $('parTab').innerHTML=h;
+}
+
+/* =========================================================
+   Modifica fattura
+   ========================================================= */
+function apriModifica(id){
+  const fa=S.fatture.find(x=>x.id===id);if(!fa)return;
+  editId=id;
+  const totale=imponibileATotale(fa.imp,!!fa.int);
+  $('fImp').value=String(Math.round(totale*100)/100).replace('.',',');$('qImp').value=$('fImp').value;
+  $('fCli').value=fa.cli||'';$('fEm').value=fa.em||'';$('fInc').value=fa.inc||'';
+  $('fInt').checked=!!fa.int;$('qInt').checked=!!fa.int;
+  $('fTitle').textContent='Modifica fattura';
+  $('fSub').textContent=`Fattura del ${dmy(fa.em)}${fa.cli?' · '+fa.cli:''}. Cambia quello che serve e aggiorna.`;
+  $('fSave').textContent='Aggiorna fattura';
+  $('fCancel').style.display='';$('fClear').style.display='none';
+  vaiA('incasso');
+  renderIncasso();renderAperte();renderRecenti();renderElencoAnno();
+  setTimeout(()=>$('fCard').scrollIntoView({block:'center',behavior:'smooth'}),60);
+}
+function chiudiModifica(){
+  editId=null;
+  $('fTitle').textContent='Registra la fattura';
+  $('fSub').textContent="Scrivi il totale della fattura, contributo integrativo già compreso: l'imponibile lo scorporiamo noi.";
+  $('fSave').textContent='Salva fattura';
+  $('fCancel').style.display='none';$('fClear').style.display='';
+  ['fImp','qImp','fCli','fInc'].forEach(i=>$(i).value='');
+  $('fEm').value=oggiISO();
+  renderIncasso();
+}
+
+/* =========================================================
+   Navigazione
+   ========================================================= */
+const CON_ANNO=['anno','scadenze','adempimenti'];
+function vaiA(nome){
+  tab=nome;
+  document.querySelectorAll('nav button').forEach(b=>{
+    const on=b.dataset.tab===nome;
+    if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+nome));
+  $('yearnav').classList.toggle('hide',!CON_ANNO.includes(nome));
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{vaiA(b.dataset.tab);window.scrollTo({top:0})});
+$('yPrev').onclick=()=>{anno--;renderAll()};
+$('yNext').onclick=()=>{anno++;renderAll()};
+$('sync').onclick=()=>{vaiA('impostazioni');window.scrollTo({top:0})};
+
+function renderAll(){
+  $('yLabel').textContent=anno;
+  $('yPrev').disabled=anno<=S.cfg.annoAvvio-1;
+  renderIncasso();renderAperte();renderRecenti();renderAnno();renderScadenze();renderAdempimenti();renderImpostazioni();
+  if(typeof aggiornaPromemoriaHome==='function') aggiornaPromemoriaHome();
+}
+
+/* =========================================================
+   Eventi
+   ========================================================= */
+['fEm','fInc'].forEach(id=>$(id).addEventListener('input',renderIncasso));
+const sync2=(a,b)=>$(a).addEventListener('input',()=>{$(b).value=$(a).value;renderIncasso()});
+sync2('qImp','fImp');sync2('fImp','qImp');
+const syncChk=(a,b)=>$(a).addEventListener('change',()=>{$(b).checked=$(a).checked;renderIncasso()});
+syncChk('qInt','fInt');syncChk('fInt','qInt');
+$('qGo').onclick=()=>{$('fCard').scrollIntoView({block:'start',behavior:'smooth'});setTimeout(()=>$('fCli').focus(),320)};
+$('fCancel').onclick=()=>{chiudiModifica();renderAll()};
+
+$('fSave').onclick=async()=>{
+  const totale=parseNum($('fImp').value), conInt=$('fInt').checked;
+  if(totale<=0){toast('Serve un totale maggiore di zero');return}
+  const imp=totaleAImponibile(totale,conInt);
+  const em=$('fEm').value||oggiISO();
+  const dati={imp,cli:$('fCli').value.trim(),em,inc:$('fInc').value||null,int:conInt};
+  if(editId){
+    const fa=S.fatture.find(x=>x.id===editId);
+    if(fa) Object.assign(fa,dati);
+    await save();anno=yOf(dati.inc)||yOf(em);
+    chiudiModifica();renderAll();toast('Fattura aggiornata');return;
+  }
+  S.fatture.push({id:String(Date.now()),...dati});
+  await save();anno=yOf(dati.inc)||yOf(em);
+  $('fImp').value='';$('qImp').value='';$('fCli').value='';
+  renderAll();toast('Fattura salvata');
+};
+$('fClear').onclick=()=>{['fImp','qImp','fCli','fInc'].forEach(i=>$(i).value='');$('fEm').value=oggiISO();renderIncasso()};
+
+$('prevSave').onclick=async()=>{
+  S.previsione[anno]={inc:parseNum($('prev').value),va:parseNum($('prevVA').value)};
+  await save();renderAll();toast('Previsione salvata');
+};
+$('oSave').onclick=async()=>{
+  S.ordine[anno]={importo:parseNum($('oImp').value),data:$('oData').value||null,pagata:$('oPag').checked};
+  await save();renderAll();toast('Quota dell’Ordine aggiornata');
+};
+$('iSave').onclick=async()=>{
+  S.assic[anno]={inizio:$('iIniz').value||null,scadenza:$('iScad').value||null,
+    premio:parseNum($('iPremio').value),compagnia:$('iComp').value.trim(),pagato:$('iPag').checked};
+  await save();renderAll();toast('Assicurazione aggiornata');
+};
+$('cSave').onclick=async()=>{
+  S.cfg.annoAvvio=parseInt($('cAvvio').value)||2026;
+  S.cfg.coeff=parseFloat($('cCoeff').value);
+  S.cfg.aliquotaImposta=parseFloat($('cImposta').value);
+  S.cfg.aliquotaSoggettivo=Math.min(100,Math.max(12,parseNum($('cSogg').value)||12));
+  S.cfg.esoneroMinSogg=$('cEsonero').checked;
+  S.cfg.minIntDovuto=$('cMinInt').checked;
+  S.cfg.deliberaFatta=$('cDelibera').checked;
+  S.cfg.versaMinimoSogg=$('cVersaMin').checked;
+  S.cfg.redditoAlLordo=$('cLordo').checked;
+  S.cfg.prudente=$('cPrudente').checked;
+  S.cfg.moltPrimo=parseNum($('cMoltPrimo').value)||1;
+  S.cfg.moltDopo=parseNum($('cMoltDopo').value)||1;
+  S.cfg.inflazione=parseNum($('cInfl').value);
+  S.cfg.quotaOrdine=parseNum($('cOrdineDef').value);
+  document.querySelectorAll('[data-p]').forEach(i=>{
+    const [y,k]=i.dataset.p.split(':');
+    S.par[y]=S.par[y]||{...par(+y)};delete S.par[y].fonte;
+    S.par[y][k]=parseNum(i.value);
+  });
+  await save();renderAll();toast('Impostazioni salvate');
+};
+$('expBtn').onclick=()=>{
+  const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`nettogiro-${oggiISO()}.json`;a.click();
+};
+$('impBtn').onclick=()=>$('impFile').click();
+$('impFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{try{
+    const d=JSON.parse(r.result);
+    S={cfg:{...CFG_DEF,...(d.cfg||{})},fatture:d.fatture||[],par:d.par||{},
+       ordine:d.ordine||{},assic:d.assic||{},previsione:d.previsione||{},profilo:d.profilo||{}};
+    await save();anno=S.cfg.annoAvvio;renderAll();toast('Backup importato');
+  }catch(err){toast('File non leggibile')}};
+  r.readAsText(f);
+};
+
+/* =========================================================
+   Intestazione home: saluto, data, orologio, meteo, avatar
+   ========================================================= */
+function saluto(){
+  const h=new Date().getHours();
+  if(h<6) return 'Buonanotte';
+  if(h<12) return 'Buongiorno';
+  if(h<18) return 'Buon pomeriggio';
+  return 'Buonasera';
+}
+function tickClock(){
+  const now=new Date();
+  $('hpClock').textContent=now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:!S.cfg.ore24});
+  const dateStr=now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if($('hpDate').textContent!==dateStr) $('hpDate').textContent=dateStr;
+  const nome=(S.profilo&&S.profilo.nome)||(fbUser&&fbUser.displayName)||'';
+  $('hpGreet').innerHTML=saluto()+(nome?', <span class="nome">'+esc(nome.split(' ')[0])+'</span>':'');
+}
+const AVATAR_GALLERIA=Array.from({length:8},(_,i)=>`Avatar/av${i+1}.png`);
+function aggiornaAvatar(){
+  const foto=(S.profilo&&S.profilo.foto)||(fbUser&&fbUser.photoURL)||FALLBACK_AVATAR;
+  $('hpAvatar').src=foto;
+  $('pfAvatar').src=foto;
+  $('pfReset').style.display=(S.profilo&&S.profilo.foto)?'':'none';
+  if(!$('pfGrid').children.length){
+    $('pfGrid').innerHTML=AVATAR_GALLERIA.map(src=>`<button type="button" data-av="${src}"><img src="${src}" alt="" loading="lazy"></button>`).join('');
+    $('pfGrid').querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{
+      fotoTemp=b.dataset.av;
+      $('pfAvatar').src=fotoTemp;
+      $('pfReset').style.display='';
+      $('pfGrid').querySelectorAll('button').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+    });
+  }
+  $('pfGrid').querySelectorAll('[data-av]').forEach(b=>{
+    b.classList.toggle('sel', S.profilo && S.profilo.foto===b.dataset.av);
+  });
+}
+$('hpAvatarBtn').onclick=()=>{vaiA('impostazioni');window.scrollTo({top:0,behavior:'smooth'})};
+
+/* ---- meteo: Open-Meteo, gratuito e senza chiave d'accesso ---- */
+function svgSole(size=40){
+  const cx=size/2,cy=size/2,r=size*0.19,rIn=size*0.29,rOut=size*0.42;
+  let rays='';
+  for(let i=0;i<8;i++){
+    const a=i*Math.PI/4;
+    const x1=cx+rIn*Math.cos(a),y1=cy+rIn*Math.sin(a),x2=cx+rOut*Math.cos(a),y2=cy+rOut*Math.sin(a);
+    rays+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke:var(--a)" stroke-width="2.6" stroke-linecap="round"/>`;
+  }
+  return `<svg viewBox="0 0 ${size} ${size}"><g class="w-sun" style="transform-origin:${cx}px ${cy}px">${rays}<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:var(--a)"/></g></svg>`;
+}
+function svgLuna(size=40){
+  const cx=size/2,cy=size/2,r=size*0.24;
+  const sp=[[0.72,0.28,1.6],[0.82,0.5,1.2],[0.66,0.62,1.0]];
+  const stars=sp.map(([fx,fy,rr],i)=>`<circle class="w-star" style="fill:#F4F2FA;animation-delay:${i*0.4}s" cx="${size*fx}" cy="${size*fy}" r="${rr}"/>`).join('');
+  return `<svg viewBox="0 0 ${size} ${size}"><path d="M ${cx+r*0.5} ${cy-r} a ${r} ${r} 0 1 0 0 ${r*2} a ${r*0.78} ${r*0.78} 0 1 1 0 -${r*2} Z" style="fill:#E7E4F5"/>${stars}</svg>`;
+}
+function svgNuvola(cx,cy,scale,cls){
+  cls=cls||'w-cloud';
+  return `<g class="${cls}"><ellipse cx="${cx}" cy="${cy}" rx="${11*scale}" ry="${8*scale}" style="fill:#CFCBDF"/>
+    <ellipse cx="${cx-7*scale}" cy="${cy+2*scale}" rx="${7*scale}" ry="${5.5*scale}" style="fill:#CFCBDF"/>
+    <ellipse cx="${cx+7*scale}" cy="${cy+2*scale}" rx="${7.5*scale}" ry="${6*scale}" style="fill:#CFCBDF"/></g>`;
+}
+function svgNuvoloso(size=40){return `<svg viewBox="0 0 ${size} ${size}">${svgNuvola(size*0.5,size*0.52,1)}</svg>`}
+function svgPoco(size=40){
+  const cx=size*0.36,cy=size*0.36,r=size*0.15,rIn=size*0.20,rOut=size*0.30;
+  let rays='';
+  for(let i=0;i<5;i++){
+    const a=-Math.PI*0.75+i*Math.PI/6;
+    const x1=cx+rIn*Math.cos(a),y1=cy+rIn*Math.sin(a),x2=cx+rOut*Math.cos(a),y2=cy+rOut*Math.sin(a);
+    rays+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke:var(--a)" stroke-width="2.4" stroke-linecap="round"/>`;
+  }
+  return `<svg viewBox="0 0 ${size} ${size}"><g class="w-sun" style="transform-origin:${cx}px ${cy}px">${rays}<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:var(--a)"/></g>${svgNuvola(size*0.58,size*0.60,0.85)}</svg>`;
+}
+function svgPioggia(size=40){
+  const drops=[0.36,0.5,0.64].map((fx,i)=>`<line class="w-drop" style="animation-delay:${i*0.3}s;stroke:var(--cassa)" x1="${size*fx}" y1="${size*0.68}" x2="${size*fx-2}" y2="${size*0.80}" stroke-width="2.2" stroke-linecap="round"/>`).join('');
+  return `<svg viewBox="0 0 ${size} ${size}">${svgNuvola(size*0.5,size*0.44,0.95)}${drops}</svg>`;
+}
+function svgNeve(size=40){
+  const flakes=[0.36,0.5,0.64].map((fx,i)=>`<circle class="w-drop" style="animation-delay:${i*0.3}s;fill:#EFEFF7" cx="${size*fx}" cy="${size*0.74}" r="1.7"/>`).join('');
+  return `<svg viewBox="0 0 ${size} ${size}">${svgNuvola(size*0.5,size*0.44,0.95)}${flakes}</svg>`;
+}
+function svgTemporale(size=40){
+  return `<svg viewBox="0 0 ${size} ${size}">${svgNuvola(size*0.5,size*0.42,0.95)}<polygon class="w-bolt" style="fill:var(--a)" points="${size*0.52},${size*0.55} ${size*0.40},${size*0.74} ${size*0.50},${size*0.74} ${size*0.42},${size*0.92} ${size*0.62},${size*0.68} ${size*0.51},${size*0.68}"/></svg>`;
+}
+function svgNebbia(size=40){
+  const lines=[0.38,0.5,0.62].map((fy,i)=>`<line class="w-cloud" style="stroke:#B9B6CC;animation-delay:${i*0.5}s" x1="${size*0.16}" y1="${size*fy}" x2="${size*0.84}" y2="${size*fy}" stroke-width="2.4" stroke-linecap="round"/>`).join('');
+  return `<svg viewBox="0 0 ${size} ${size}">${lines}</svg>`;
+}
+function iconaMeteo(code,isDay){
+  if(code===0) return isDay?svgSole():svgLuna();
+  if(code===1||code===2) return isDay?svgPoco():svgNuvoloso();
+  if(code===3) return svgNuvoloso();
+  if(code===45||code===48) return svgNebbia();
+  if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) return svgPioggia();
+  if([71,73,75,77,85,86].includes(code)) return svgNeve();
+  if([95,96,99].includes(code)) return svgTemporale();
+  return svgNuvoloso();
+}
+let cittaCache=null; // {lat,lon,nome} — la posizione cambia raramente, non serve richiederla ogni volta
+async function nomeCitta(lat,lon){
+  if(cittaCache && Math.abs(cittaCache.lat-lat)<0.05 && Math.abs(cittaCache.lon-lon)<0.05) return cittaCache.nome;
+  try{
+    const url=`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=it`;
+    const r=await fetch(url);
+    const d=await r.json();
+    const nome=d.city||d.locality||d.principalSubdivision||'';
+    cittaCache={lat,lon,nome};
+    return nome;
+  }catch(e){return ''}
+}
+function aggiornaMeteo(){
+  if(!S.cfg.meteoAttivo||!navigator.geolocation){$('hpWeather').style.display='none';return}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    try{
+      const {latitude,longitude}=pos.coords;
+      const url=`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,is_day&timezone=auto`;
+      const [r,citta]=await Promise.all([fetch(url), nomeCitta(latitude,longitude)]);
+      const d=await r.json();
+      const c=d.current;
+      $('hpWIcon').innerHTML=iconaMeteo(c.weather_code, c.is_day===1);
+      $('hpWTemp').textContent=Math.round(c.temperature_2m)+'°';
+      $('hpWCity').textContent=citta;
+      $('hpWeather').style.display='flex';
+    }catch(e){$('hpWeather').style.display='none'}
+  }, ()=>{$('hpWeather').style.display='none'}, {maximumAge:600000,timeout:8000});
+}
+
+/* ---- promemoria prossima scadenza, indipendente dall'anno che stai sfogliando ---- */
+function prossimaScadenzaAssoluta(){
+  const oggi=oggiISO();
+  const anniDaControllare=[new Date().getFullYear(), new Date().getFullYear()+1];
+  const items=[];
+  for(const Y of anniDaControllare){
+    if(Y<S.cfg.annoAvvio) continue;
+    const c=cassa(Y), acc=acconti(Y);
+    const add=(md,tit)=>items.push({d:shiftData(`${Y}-${md}`),tit});
+    const minimiTot=c.minSoggDovuto+c.minIntDovuto;
+    if(minimiTot>0){
+      if(Y===S.cfg.annoAvvio&&!S.cfg.deliberaFatta) add('06-01','Contributi minimi (importo intero)');
+      else{ add('05-31','Contributi minimi, prima rata'); add('10-31','Contributi minimi, seconda rata'); }
+    }
+    const saldoPrec=Y-1>=S.cfg.annoAvvio?saldo(Y-1):0;
+    if(saldoPrec>0||acc.prima>0) add('06-30','Saldo e primo acconto');
+    if(acc.seconda>0) add('11-30','Secondo acconto');
+    if(c.soggEcc+c.intEcc+c.mat>0) add('12-20','Eccedenze e maternità');
+    const o=S.ordine[Y]||{};
+    if(!o.pagata) add('03-31','Quota dell’Ordine');
+    const a=S.assic[Y]||{};
+    if(a.scadenza) items.push({d:a.scadenza,tit:'Scadenza assicurazione'});
+  }
+  const future=items.filter(i=>i.d>=oggi).sort((a,b)=>a.d.localeCompare(b.d));
+  return future[0]||null;
+}
+function aggiornaPromemoriaHome(){
+  if(!S.cfg.promemoriaHome){$('hpNext').style.display='none';return}
+  const p=prossimaScadenzaAssoluta();
+  if(!p){$('hpNext').style.display='none';return}
+  const giorni=Math.round((new Date(p.d+'T00:00:00')-new Date(oggiISO()+'T00:00:00'))/86400000);
+  const quando=giorni===0?'oggi':giorni===1?'domani':`tra ${giorni} giorni`;
+  $('hpNextTxt').textContent=`Prossima scadenza: ${p.tit}, ${dmy(p.d)} (${quando})`;
+  $('hpNext').style.display='flex';
+}
+
+/* ---- profilo: foto (compressa, dentro Firestore) e nome visualizzato ---- */
+let fotoTemp=null;
+$('pfUpload').onclick=()=>$('pfFile').click();
+$('pfFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const size=220;
+      const canvas=document.createElement('canvas');
+      canvas.width=size; canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      const side=Math.min(img.width,img.height);
+      const sx=(img.width-side)/2, sy=(img.height-side)/2;
+      ctx.drawImage(img, sx,sy,side,side, 0,0,size,size);
+      fotoTemp=canvas.toDataURL('image/jpeg',0.85);
+      $('pfAvatar').src=fotoTemp;
+      $('pfReset').style.display='';
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
+};
+$('pfReset').onclick=()=>{
+  fotoTemp='';
+  $('pfAvatar').src=(fbUser&&fbUser.photoURL)||FALLBACK_AVATAR;
+  $('pfReset').style.display='none';
+};
+$('pfSave').onclick=async()=>{
+  S.profilo=S.profilo||{};
+  if(fotoTemp!==null) S.profilo.foto=fotoTemp;
+  S.profilo.nome=$('pfNome').value.trim();
+  fotoTemp=null;
+  await save();
+  aggiornaAvatar(); tickClock();
+  toast('Profilo salvato');
+};
+
+/* ---- interruttori Home e aspetto: applicazione immediata ---- */
+$('cMeteo').addEventListener('change', async()=>{
+  S.cfg.meteoAttivo=$('cMeteo').checked;
+  await save();
+  if(S.cfg.meteoAttivo) aggiornaMeteo(); else $('hpWeather').style.display='none';
+});
+$('cOre24').addEventListener('change', async()=>{
+  S.cfg.ore24=$('cOre24').checked;
+  await save();
+  tickClock();
+});
+$('cPromemoria').addEventListener('change', async()=>{
+  S.cfg.promemoriaHome=$('cPromemoria').checked;
+  await save();
+  aggiornaPromemoriaHome();
+});
+
+/* =========================================================
+   Avvio
+   ========================================================= */
+async function avviaApp(){
+  setSync('save');
+  const d=await store.get();
+  if(d) S={cfg:{...CFG_DEF,...(d.cfg||{})},fatture:d.fatture||[],par:d.par||{},
+           ordine:d.ordine||{},assic:d.assic||{},previsione:d.previsione||{},profilo:d.profilo||{}};
+  setSync((store.mode==='cloud'||store.mode==='firebase')?'ok':'local');
+  anno=Math.max(S.cfg.annoAvvio,Math.min(new Date().getFullYear(),S.cfg.annoAvvio+50));
+  $('fEm').value=oggiISO();
+  vaiA('incasso');
+  renderAll();
+
+  aggiornaAvatar();
+  tickClock();
+  if(!window.__nfClockTimer) window.__nfClockTimer=setInterval(tickClock,1000);
+  aggiornaPromemoriaHome();
+  if(S.cfg.meteoAttivo) aggiornaMeteo();
+  if(!window.__nfMeteoTimer) window.__nfMeteoTimer=setInterval(()=>{if(S.cfg.meteoAttivo) aggiornaMeteo()},20*60*1000);
+}
+
+/* Firebase Auth non funziona se la pagina è aperta come file locale, o se il
+   browser ha la memoria di sito disattivata (es. modalità privata molto
+   restrittiva). Meglio dirlo subito in italiano che lasciar comparire
+   l'errore tecnico di Firebase. */
+function ambienteNonAdattoAlLogin(){
+  if(location.protocol==='file:')
+    return "Questa pagina è aperta come file locale: l'accesso non funziona così. Aprila dal suo indirizzo web (https://…), come indicato nella guida.";
+  try{ if(typeof window.localStorage==='undefined') throw 0; localStorage.setItem('__nf_test','1'); localStorage.removeItem('__nf_test'); }
+  catch(e){ return "Il browser sta bloccando la memoria di sito, necessaria per l'accesso. Disattiva la navigazione in incognito o i blocchi di storage per questo sito, poi ricarica la pagina."; }
+  return null;
+}
+
+/* Registra chi si iscrive (email e data) in una collezione separata, leggibile
+   solo dal tuo account: è la lista che chiedevi per vedere chi si è registrato. */
+async function registraUtente(user){
+  try{
+    await fbDb.collection('registrazioni').doc(user.uid).set({
+      email:user.email, creato:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){/* un problema qui non deve mai bloccare l'accesso */}
+}
+
+/* Registra ogni accesso riuscito (email e data/ora) in una collezione a parte:
+   è la cronologia accessi mostrata nelle impostazioni. Un problema qui non
+   deve mai bloccare l'accesso vero e proprio. */
+async function registraAccesso(user){
+  try{
+    await fbDb.collection('cronologiaAccessi').add({
+      email:user.email, quando:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){/* ignorato di proposito */}
+}
+
+/* Legge le ultime voci della cronologia accessi e le disegna in #accessiBox. */
+async function renderCronologiaAccessi(){
+  const box=$('accessiBox');
+  if(!fbDb){return}
+  try{
+    const q=await fbDb.collection('cronologiaAccessi').orderBy('quando','desc').limit(20).get();
+    if(q.empty){box.innerHTML='<div class="empty">Nessun accesso registrato finora.</div>';return}
+    box.innerHTML='<div class="accrows">'+q.docs.map(doc=>{
+      const d=doc.data();
+      const t=d.quando&&d.quando.toDate?d.quando.toDate():null;
+      const qu=t?`${t.toLocaleDateString('it-IT')} ${t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}`:'—';
+      return `<div class="ar"><span class="em">${d.email||'—'}</span><span class="qu">${qu}</span></div>`;
+    }).join('')+'</div>';
+  }catch(e){
+    box.innerHTML='<div class="empty">Cronologia non disponibile al momento.</div>';
+  }
+}
+
+async function eseguiAuth(tipo){
+  const problema=ambienteNonAdattoAlLogin();
+  if(problema){$('authMsg').textContent=problema;return}
+  const email=$('authEmail').value.trim(), pass=$('authPass').value;
+  $('authMsg').textContent='';
+  if(!email||pass.length<6){$('authMsg').textContent='Email e password di almeno 6 caratteri.';return}
+  try{
+    if(tipo==='up'){
+      const cred=await fbAuth.createUserWithEmailAndPassword(email,pass);
+      await cred.user.sendEmailVerification();
+      await registraUtente(cred.user);
+      // onAuthStateChanged rileva subito il nuovo accesso e mostra l'avviso di verifica
+    } else {
+      await fbAuth.signInWithEmailAndPassword(email,pass);
+    }
+  }catch(e){
+    const msgs={
+      'auth/wrong-password':'Password errata.',
+      'auth/invalid-credential':'Email o password errate.',
+      'auth/user-not-found':'Nessun account con questa email — usa "Crea account".',
+      'auth/email-already-in-use':'Esiste già un account con questa email — usa "Accedi".',
+      'auth/weak-password':'Password troppo debole, almeno 6 caratteri.',
+      'auth/invalid-email':'Email non valida.',
+      'auth/operation-not-supported-in-this-environment':"Questo browser o questa modalità di navigazione non supporta l'accesso. Riprova da una finestra normale (non incognito) o da un altro browser."
+    };
+    $('authMsg').textContent=msgs[e.code]||('Errore: '+e.message);
+  }
+}
+
+async function eseguiPasswordDimenticata(){
+  const email=$('authEmail').value.trim();
+  if(!email){$('authMsg').textContent='Scrivi la tua email qui sopra, poi premi di nuovo il link.';return}
+  try{
+    await fbAuth.sendPasswordResetEmail(email);
+    $('authMsg').textContent=`Ti abbiamo mandato un'email a ${email} per reimpostare la password.`;
+  }catch(e){
+    $('authMsg').textContent = e.code==='auth/user-not-found'
+      ? 'Nessun account con questa email.' : ('Errore: '+e.message);
+  }
+}
+
+/* Dopo il login, verifica lato server che l'account sia autorizzato: se le regole di
+   Firestore respingono questo utente, non lo lasciamo dentro con l'app vuota — lo
+   avvisiamo chiaramente e lo disconnettiamo subito. Un account email/password appena
+   creato non è ancora verificato: è normale, gli si chiede solo di controllare la posta. */
+async function verificaAutorizzazioneEAvvia(user){
+  if(!user.emailVerified){
+    $('authMsg').textContent=`Controlla la posta di ${user.email}: ti abbiamo mandato un link di verifica. Aprilo, poi torna qui e accedi di nuovo.`;
+    await fbAuth.signOut();
+    return;
+  }
+  try{
+    await fbDb.collection('nettogiro').doc(user.uid).get();
+    $('authGate').style.display='none';
+    registraAccesso(user);
+    avviaApp();
+  }catch(e){
+    $('authMsg').textContent = e.code==='permission-denied'
+      ? `L'account ${user.email} non è autorizzato ad accedere a questa app.`
+      : ('Errore: '+e.message);
+    await fbAuth.signOut();
+  }
+}
+
+if(FIREBASE_ATTIVO && fbAuth){
+  $('authIn').onclick=()=>eseguiAuth('in');
+  $('authUp').onclick=()=>eseguiAuth('up');
+  $('authForgot').onclick=()=>eseguiPasswordDimenticata();
+  $('authOut').onclick=()=>fbAuth.signOut();
+  fbAuth.onAuthStateChanged(user=>{
+    fbUser=user;
+    if(user){ verificaAutorizzazioneEAvvia(user); }
+    else{
+      $('authGate').style.display='flex';
+      const problema=ambienteNonAdattoAlLogin();
+      if(problema) $('authMsg').textContent=problema;
+    }
+  });
+}else if(FIREBASE_ATTIVO && !fbAuth){
+  /* La configurazione c'è, ma l'SDK di Firebase non si è caricato: connessione
+     assente, script bloccato dal browser, o — come qui in chat — un ambiente
+     di anteprima che non permette script esterni. Niente crash: si continua
+     in locale, e lo si dice chiaramente invece di restare bloccati. */
+  avviaApp();
+  toast('Firebase non disponibile in questo momento: si lavora solo su questo dispositivo.');
+}else{
+  avviaApp();
+}
+
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+}
+
+</script>
+</body>
+</html>
